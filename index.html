@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="个人每日打卡，记录每一天的坚持。">
+  <title>每日打卡</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232c57ef'/%3E%3Cpath d='m8 16 5 5 11-11' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
+  <style>
+    :root{font-family:Inter,"Microsoft YaHei",system-ui,sans-serif;color:#172342;background:#f3f6fc;font-size:16px;color-scheme:light}*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid #fcad33;outline-offset:4px}main{max-width:1000px;margin:0 auto;padding:48px 24px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}.brand{display:flex;gap:12px;align-items:center;font-weight:700;font-size:1.2rem}.mark{display:grid;place-items:center;width:38px;height:38px;background:#2c57ef;color:white;border-radius:12px}header span:last-child{font-size:.875rem;color:#64718a}h1{font-size:2rem;letter-spacing:-1px;margin:0 0 12px}p{line-height:1.7}.layout{display:grid;grid-template-columns:.85fr 1.15fr;gap:24px}.today{background:#244de0;color:white;border-radius:24px;padding:32px;display:flex;flex-direction:column;min-height:365px}.eyebrow{font-size:.875rem;opacity:.8;margin:0 0 20px}.today p{margin:0;opacity:.9}.check{width:100%;margin-top:auto;padding:16px;border:0;border-radius:12px;font-weight:700;background:white;color:#244de0}.check:disabled{cursor:default;background:#dbe5ff;color:#2547a5}.today .hint{font-size:.875rem;margin:16px 0 24px}.stats{display:flex;gap:32px;margin:28px 0}.stat strong{font-size:2.15rem;display:block;line-height:1.2}.stat span{font-size:.875rem;display:block;margin-top:8px;opacity:.85}.panel{background:white;border:1px solid #e1e7f2;border-radius:24px;padding:28px}.calendar-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.calendar-head h2{margin:0;font-size:1.15rem}.nav{display:flex;gap:8px}.nav button{background:#f0f3fa;border:0;width:36px;height:36px;border-radius:9px;font-size:1.25rem}.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}.weekday{font-size:.875rem;color:#7c879d;text-align:center;padding-bottom:12px}.day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:12px;position:relative;font-size:.875rem}.day.checked{background:#2c57ef;color:white;font-weight:700}.day.current{box-shadow:inset 0 0 0 2px #2c57ef}.day.future{color:#a8b0c1}.legend{display:flex;gap:18px;margin-top:22px;font-size:.875rem;color:#64718a}.legend span{display:flex;gap:7px;align-items:center}.swatch{width:12px;height:12px;border-radius:4px;background:#2c57ef}.outline{background:white;border:2px solid #2c57ef}.history{margin-top:24px}.history h2{margin:0 0 16px;font-size:1.15rem}.row{display:flex;justify-content:space-between;padding:14px 0;border-top:1px solid #edf0f6;gap:12px;font-size:.875rem}.row time{color:#64718a}.empty{color:#64718a;margin:0;padding:12px 0}.footer{margin:24px 4px;color:#6c7890;font-size:.875rem;line-height:1.7}.notice{min-height:1.5em;color:#9e3d12;margin:12px 0;font-size:.875rem}#status{margin:12px 0 0;font-size:.875rem;color:#1f429e;min-height:1.5em}@media(max-width:700px){main{padding:24px 16px}header{margin-bottom:24px}.layout{grid-template-columns:1fr}.today{min-height:310px;padding:28px}.panel{padding:22px}.grid{gap:6px}h1{font-size:1.75rem}}@media(prefers-reduced-motion:no-preference){.check{transition:transform .15s}.check:active{transform:scale(.98)}}
+  </style>
+</head>
+<body>
+<main>
+  <header><div class="brand"><span class="mark" aria-hidden="true">✓</span>每日打卡</div><span>一天，一次坚持</span></header>
+  <div class="layout">
+    <section class="today" aria-label="今日打卡">
+      <p class="eyebrow" id="today-date"></p>
+      <h1 id="headline">今天也要继续。</h1>
+      <p id="description">完成今天的目标，就为自己记下一笔。</p>
+      <div class="stats"><div class="stat"><strong id="streak">0</strong><span>连续打卡 / 天</span></div><div class="stat"><strong id="total">0</strong><span>累计打卡 / 天</span></div></div>
+      <p class="hint">每天可以打卡一次。</p>
+      <button class="check" id="checkin">✓  完成今日打卡</button>
+    </section>
+    <section class="panel" aria-label="打卡月历">
+      <div class="calendar-head"><h2 id="month"></h2><div class="nav"><button id="prev" aria-label="上个月">‹</button><button id="next" aria-label="下个月">›</button></div></div>
+      <div class="grid" id="calendar"></div>
+      <div class="legend"><span><i class="swatch"></i>已打卡</span><span><i class="swatch outline"></i>今天</span></div>
+    </section>
+  </div>
+  <p id="status" role="status" aria-live="polite"></p>
+  <p class="notice" id="error" role="alert"></p>
+  <section class="panel history"><h2>最近记录</h2><div id="history"></div></section>
+  <p class="footer">记录保存在当前浏览器中，不会自动同步到其他设备。清除浏览器网站数据会删除记录。日期按设备所在时区计算。</p>
+</main>
+<script>
+  'use strict';
+  const KEY = 'personal-daily-checkin-v1';
+  const dateKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const shiftDay = (key, count) => {const [y,m,d]=key.split('-').map(Number);return dateKey(new Date(y,m-1,d+count,12));};
+  function validRecords(value){if(!value || typeof value!=='object' || Array.isArray(value))throw Error('Invalid data');for(const [key,time] of Object.entries(value)){if(!/^\d{4}-\d{2}-\d{2}$/.test(key)||shiftDay(key,0)!==key||typeof time!=='string'||!Number.isFinite(Date.parse(time)))throw Error('Invalid record');}return value;}
+  const $ = id => document.getElementById(id);
+  let records = {}, storageOK = true;
+  function readRecords(){try{const raw=localStorage.getItem(KEY);records=raw?validRecords(JSON.parse(raw)):{};storageOK=true;$('error').textContent='';}catch(error){storageOK=false;$('error').textContent='暂时无法读取打卡记录，请检查浏览器存储设置。已有数据不会被覆盖。';}}
+  readRecords();
+  let viewed = new Date(); viewed = new Date(viewed.getFullYear(), viewed.getMonth(), 1, 12);
+  function streakFor(data,today){let cursor=data[today]?today:shiftDay(today,-1),n=0;while(data[cursor]){n++;cursor=shiftDay(cursor,-1);}return n;}
+  function render(){
+    const now=new Date(),today=dateKey(now),done=Boolean(records[today]);
+    $('today-date').textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
+    $('headline').textContent=done?'今天，已经完成。':'今天也要继续。';
+    $('description').textContent=done?'这一点坚持，已经留在你的记录里。':'完成今天的目标，就为自己记下一笔。';
+    $('checkin').disabled=done||!storageOK;
+    $('checkin').textContent=done?'✓  今日已打卡':'✓  完成今日打卡';
+    $('streak').textContent=streakFor(records,today);
+    $('total').textContent=Object.keys(records).length;
+    const y=viewed.getFullYear(),m=viewed.getMonth();$('month').textContent=`${y} 年 ${m+1} 月`;
+    const grid=$('calendar');grid.replaceChildren();
+    for(const w of ['一','二','三','四','五','六','日']){const el=document.createElement('div');el.className='weekday';el.textContent=w;grid.append(el);}
+    const start=(new Date(y,m,1).getDay()+6)%7;
+    for(let i=0;i<start;i++)grid.append(document.createElement('div'));
+    for(let d=1;d<=new Date(y,m+1,0).getDate();d++){const key=dateKey(new Date(y,m,d,12)),el=document.createElement('div');el.className='day'+(records[key]?' checked':'')+(key===today?' current':'')+(key>today?' future':'');el.textContent=d;el.setAttribute('aria-label',`${key}${records[key]?'，已打卡':''}${key===today?'，今天':''}`);grid.append(el);}
+    const list=$('history');list.replaceChildren();const keys=Object.keys(records).sort().reverse().slice(0,7);
+    if(!keys.length){const p=document.createElement('p');p.className='empty';p.textContent='还没有记录，今天就是开始的好日子。';list.append(p);}
+    for(const key of keys){const row=document.createElement('div');row.className='row';const label=document.createElement('span');label.textContent=`${key} · 已打卡`;const time=document.createElement('time');time.dateTime=records[key];time.textContent=new Date(records[key]).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});row.append(label,time);list.append(row);}
+  }
+  function checkin(){
+    readRecords();if(!storageOK){render();throw Error('无法保存记录');}
+    const now=new Date(),today=dateKey(now);if(records[today]){render();return {date:today,alreadyChecked:true};}
+    const updated={...records,[today]:now.toISOString()};
+    try{localStorage.setItem(KEY,JSON.stringify(updated));}catch(error){$('error').textContent='保存失败，本次打卡尚未记录。请检查浏览器是否允许保存网站数据。';throw Error('保存失败');}
+    records=updated;viewed=new Date(now.getFullYear(),now.getMonth(),1,12);render();$('status').textContent='今日打卡成功。明天继续！';return {date:today,alreadyChecked:false};
+  }
+  $('checkin').addEventListener('click',()=>{try{checkin();}catch(error){}});
+  $('prev').addEventListener('click',()=>{viewed=new Date(viewed.getFullYear(),viewed.getMonth()-1,1,12);render();});
+  $('next').addEventListener('click',()=>{viewed=new Date(viewed.getFullYear(),viewed.getMonth()+1,1,12);render();});
+  window.addEventListener('storage',event=>{if(event.key===KEY||event.key===null){readRecords();render();}});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden){readRecords();render();}});
+  setInterval(render,30000);
+  render();
+  if(document.modelContext?.registerTool){try{Promise.resolve(document.modelContext.registerTool({name:'check_in_today',title:'今日打卡',description:'记录当前浏览器中今天的个人打卡，每天一次。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw Error('此操作不接受参数');return checkin();}})).catch(()=>{});}catch(error){}}
+</script>
+</body>
+</html>
+
