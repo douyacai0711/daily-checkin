@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="个人每日打卡，记录每一天的坚持。">
+  <meta name="description" content="个人递增间隔打卡，按 1、2、3、4……天安排下一次坚持。">
   <title>每日打卡</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232c57ef'/%3E%3Cpath d='m8 16 5 5 11-11' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
   <style>
@@ -12,14 +12,14 @@
 </head>
 <body>
 <main>
-  <header><div class="brand"><span class="mark" aria-hidden="true">✓</span>每日打卡</div><span>一天，一次坚持</span></header>
+  <header><div class="brand"><span class="mark" aria-hidden="true">✓</span>每日打卡</div><span>间隔递增，坚持继续</span></header>
   <div class="layout">
     <section class="today" aria-label="今日打卡">
       <p class="eyebrow" id="today-date"></p>
       <h1 id="headline">今天也要继续。</h1>
       <p id="description">完成今天的目标，就为自己记下一笔。</p>
-      <div class="stats"><div class="stat"><strong id="streak">0</strong><span>连续打卡 / 天</span></div><div class="stat"><strong id="total">0</strong><span>累计打卡 / 天</span></div></div>
-      <p class="hint">每天可以打卡一次。</p>
+      <div class="stats"><div class="stat"><strong id="interval">1</strong><span>下次间隔 / 天</span></div><div class="stat"><strong id="total">0</strong><span>累计打卡 / 次</span></div></div>
+      <p class="hint" id="schedule" aria-live="polite"></p>
       <button class="check" id="checkin">✓  完成今日打卡</button>
     </section>
     <section class="panel" aria-label="打卡月历">
@@ -38,22 +38,28 @@
   const KEY = 'personal-daily-checkin-v1';
   const dateKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   const shiftDay = (key, count) => {const [y,m,d]=key.split('-').map(Number);return dateKey(new Date(y,m-1,d+count,12));};
+  const dayNumber = key => {const [y,m,d]=key.split('-').map(Number);return Math.round(Date.UTC(y,m-1,d)/86400000);};
+  function scheduleFor(data,today){
+    const keys=Object.keys(data).sort(),count=keys.length;
+    const interval=Math.max(1,count),due=count?shiftDay(keys[count-1],interval):today;
+    return {count,interval,due,remaining:Math.max(0,dayNumber(due)-dayNumber(today)),eligible:today>=due&&!data[today]};
+  }
   function validRecords(value){if(!value || typeof value!=='object' || Array.isArray(value))throw Error('Invalid data');for(const [key,time] of Object.entries(value)){if(!/^\d{4}-\d{2}-\d{2}$/.test(key)||shiftDay(key,0)!==key||typeof time!=='string'||!Number.isFinite(Date.parse(time)))throw Error('Invalid record');}return value;}
   const $ = id => document.getElementById(id);
   let records = {}, storageOK = true;
   function readRecords(){try{const raw=localStorage.getItem(KEY);records=raw?validRecords(JSON.parse(raw)):{};storageOK=true;$('error').textContent='';}catch(error){storageOK=false;$('error').textContent='暂时无法读取打卡记录，请检查浏览器存储设置。已有数据不会被覆盖。';}}
   readRecords();
   let viewed = new Date(); viewed = new Date(viewed.getFullYear(), viewed.getMonth(), 1, 12);
-  function streakFor(data,today){let cursor=data[today]?today:shiftDay(today,-1),n=0;while(data[cursor]){n++;cursor=shiftDay(cursor,-1);}return n;}
   function render(){
-    const now=new Date(),today=dateKey(now),done=Boolean(records[today]);
+    const now=new Date(),today=dateKey(now),done=Boolean(records[today]),schedule=scheduleFor(records,today);
     $('today-date').textContent=now.toLocaleDateString('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'long'});
-    $('headline').textContent=done?'今天，已经完成。':'今天也要继续。';
-    $('description').textContent=done?'这一点坚持，已经留在你的记录里。':'完成今天的目标，就为自己记下一笔。';
-    $('checkin').disabled=done||!storageOK;
-    $('checkin').textContent=done?'✓  今日已打卡':'✓  完成今日打卡';
-    $('streak').textContent=streakFor(records,today);
-    $('total').textContent=Object.keys(records).length;
+    $('headline').textContent=done?'今天，已经完成。':schedule.eligible?'今天可以打卡。':'等待下一次坚持。';
+    $('description').textContent='打卡间隔依次为 1、2、3、4……天，到期后即可打卡。';
+    $('checkin').disabled=!schedule.eligible||!storageOK;
+    $('checkin').textContent=done?'✓  今日已打卡':schedule.eligible?'✓  完成今日打卡':`还有 ${schedule.remaining} 天可打卡`;
+    $('interval').textContent=schedule.interval;
+    $('total').textContent=schedule.count;
+    $('schedule').textContent=schedule.count?`下次可打卡：${schedule.due}${schedule.remaining?`（还有 ${schedule.remaining} 天）`:'（已到期）'}。完成第 ${schedule.count+1} 次后，间隔 ${schedule.count+1} 天。`:'首次可立即打卡，完成后隔 1 天再打卡。';
     const y=viewed.getFullYear(),m=viewed.getMonth();$('month').textContent=`${y} 年 ${m+1} 月`;
     const grid=$('calendar');grid.replaceChildren();
     for(const w of ['一','二','三','四','五','六','日']){const el=document.createElement('div');el.className='weekday';el.textContent=w;grid.append(el);}
@@ -67,9 +73,11 @@
   function checkin(){
     readRecords();if(!storageOK){render();throw Error('无法保存记录');}
     const now=new Date(),today=dateKey(now);if(records[today]){render();return {date:today,alreadyChecked:true};}
+    const schedule=scheduleFor(records,today);
+    if(!schedule.eligible){render();$('status').textContent=`尚未到打卡日期，请在 ${schedule.due} 或之后打卡。`;throw Error('尚未到打卡日期');}
     const updated={...records,[today]:now.toISOString()};
     try{localStorage.setItem(KEY,JSON.stringify(updated));}catch(error){$('error').textContent='保存失败，本次打卡尚未记录。请检查浏览器是否允许保存网站数据。';throw Error('保存失败');}
-    records=updated;viewed=new Date(now.getFullYear(),now.getMonth(),1,12);render();$('status').textContent='今日打卡成功。明天继续！';return {date:today,alreadyChecked:false};
+    records=updated;viewed=new Date(now.getFullYear(),now.getMonth(),1,12);render();const next=scheduleFor(records,today);$('status').textContent=`第 ${next.count} 次打卡成功。下次可打卡：${next.due}，间隔 ${next.interval} 天。`;return {date:today,alreadyChecked:false,nextDate:next.due,intervalDays:next.interval};
   }
   $('checkin').addEventListener('click',()=>{try{checkin();}catch(error){}});
   $('prev').addEventListener('click',()=>{viewed=new Date(viewed.getFullYear(),viewed.getMonth()-1,1,12);render();});
@@ -78,8 +86,7 @@
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){readRecords();render();}});
   setInterval(render,30000);
   render();
-  if(document.modelContext?.registerTool){try{Promise.resolve(document.modelContext.registerTool({name:'check_in_today',title:'今日打卡',description:'记录当前浏览器中今天的个人打卡，每天一次。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw Error('此操作不接受参数');return checkin();}})).catch(()=>{});}catch(error){}}
+  if(document.modelContext?.registerTool){try{Promise.resolve(document.modelContext.registerTool({name:'check_in_today',title:'今日打卡',description:'记录当前浏览器中的个人打卡，仅到期后可执行，打卡间隔依次增加为 1、2、3、4……天。',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:false,untrustedContentHint:false},execute(input){if(!input||typeof input!=='object'||Array.isArray(input)||Object.keys(input).length)throw Error('此操作不接受参数');return checkin();}})).catch(()=>{});}catch(error){}}
 </script>
 </body>
 </html>
-
